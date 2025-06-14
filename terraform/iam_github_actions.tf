@@ -2,12 +2,11 @@ resource "aws_iam_openid_connect_provider" "github_actions" {
   url = "https://token.actions.githubusercontent.com"
 
   client_id_list = [
-    "https://github.com/m-lisitski",
+    "sts.amazonaws.com",
   ]
 }
 
-
-resource "aws_iam_role" "githab_actions" {
+resource "aws_iam_role" "github_actions" {
   name = "rs-school_github_actions"
 
   assume_role_policy = jsonencode({
@@ -17,12 +16,10 @@ resource "aws_iam_role" "githab_actions" {
         "Condition" = {
           "StringEquals" = {
             "token.actions.githubusercontent.com:aud" = [
-              "https://github.com/m-lisitski",
-            ]
-          }
-          "StringLike" = {
+              "sts.amazonaws.com",
+            ],
             "token.actions.githubusercontent.com:sub" = [
-              "repo:m-lisistski/m-lisitski:environment:AWS_rs-school",
+              "repo:m-lisitski/m-lisitski-AWSDEVOPS2025Q2:environment:AWS_rs-school",
             ]
           }
         }
@@ -37,9 +34,9 @@ resource "aws_iam_role" "githab_actions" {
 
 }
 
-resource "aws_iam_role_policy_attachment" "githab_actions" {
+resource "aws_iam_role_policy_attachment" "github_actions" {
   for_each   = { for index, p in data.aws_iam_policy.admin_role : index => p.arn }
-  role       = aws_iam_role.githab_actions.name
+  role       = aws_iam_role.github_actions.name
   policy_arn = each.value
 }
 

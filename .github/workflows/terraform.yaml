@@ -12,54 +12,105 @@ on:
     paths:
       - "**"
 
+env:
+  TF_DIR: "./terraform"
+
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
-  terraform:
-    name: "Terraform"
+  terraform-check:
+    name: "Terraform Check"
     runs-on: ubuntu-latest
     environment: AWS_rs-school
-    permissions:
-      id-token: write
-
-    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
-    defaults:
-      run:
-        shell: bash
 
     steps:
-      # Checkout the repository to the GitHub Actions runner
       - name: Checkout
         uses: actions/checkout@v4
 
-      # - name: Configure AWS credentials
-      #   uses: aws-actions/configure-aws-credentials@v4
-      #   with:
-      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: us-east-1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ vars.AWS_GITHUB_ACTIONS_ROLE_ARN }}
 
-      # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.12.1
 
-      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
       - name: Terraform Init
+        working-directory: ${{ env.TF_DIR }}
         run: terraform init
 
-      # Checks that all Terraform configuration files adhere to a canonical format
       - name: Terraform Format
+        working-directory: ${{ env.TF_DIR }}
         run: terraform fmt -check
 
-      # Validate all Terraform configuration files
       - name: Terraform Validate
+        working-directory: ${{ env.TF_DIR }}
         run: terraform validate
 
-      # Generates an execution plan for Terraform
-      - name: Terraform Plan
-        run: terraform plan -input=false
+  terraform-plan:
+    needs: terraform-check
+    name: "Terraform Plan"
+    runs-on: ubuntu-latest
+    environment: AWS_rs-school
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-        # On push to "main", build or change infrastructure according to Terraform configuration files
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ vars.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform plan -input=false -out=tfplan
+
+      - name: Upload Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: ${{ env.TF_DIR }}
+
+  terraform-apply:
+    needs: terraform-plan
+    name: "Terraform Apply"
+    runs-on: ubuntu-latest
+    environment: AWS_rs-school
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ vars.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform init
+
+      - name: Download Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: ${{ env.TF_DIR }}
+
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve -input=false
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform apply -input=false tfplan
