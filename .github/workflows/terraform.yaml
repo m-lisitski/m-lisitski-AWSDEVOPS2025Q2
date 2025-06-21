@@ -87,7 +87,8 @@ jobs:
     name: "Terraform Apply"
     runs-on: ubuntu-latest
     environment: AWS_rs-school
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: false
+    # if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
