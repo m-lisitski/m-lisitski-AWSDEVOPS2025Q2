@@ -15,6 +15,11 @@ resource "aws_instance" "bastion_10" {
   vpc_security_group_ids = [aws_security_group.bastion_10.id, aws_security_group.public_10.id]
   key_name               = aws_key_pair.bastion_10.key_name
   tags                   = var.bastion_instance_config.tags
+
+  user_data = templatefile("${path.module}/user_data/bastion_10.tftpl", {
+    ssh_private_b64 = local.ssh_private_b64,
+    home_path       = local.home_path
+  })
 }
 
 resource "aws_eip" "bastion_10" {
@@ -40,12 +45,6 @@ resource "aws_vpc_security_group_ingress_rule" "ssh_bastion_10" {
   to_port     = "22"
   tags        = var.bastion_instance_config.tags
 }
-
-moved {
-  from = aws_vpc_security_group_ingress_rule.ec2_console_access
-  to   = aws_vpc_security_group_ingress_rule.bastion_console_access
-}
-
 
 resource "aws_vpc_security_group_ingress_rule" "bastion_console_access" {
   security_group_id = aws_security_group.bastion_10.id
