@@ -26,37 +26,15 @@ output "bastion_10_public_ip" {
   value       = aws_eip.bastion_10.public_ip
 }
 
-# output "bastion_info_10" {
-#   description = "AWS 10.0.0.0/16 VPC Bastion Info"
-#   value = {
-#     instance_state     = aws_instance.bastion_10.instance_state
-#     ec2_console_access = tobool(aws_vpc_security_group_ingress_rule.bastion_console_access.id != null)
-#     public_ip          = aws_eip.bastion_10.public_ip
-#     private_ip         = aws_instance.bastion_10.private_ip
-#     public_dns         = aws_instance.bastion_10.public_dns
-#     ssh_allowed_cidrs  = var.bastion_10_ssh_allowed_cidrs
-#     ssh_command        = "ssh -i ~/${var.bastion_instance_config.ssh_key_path} ubuntu@${aws_eip.bastion_10.public_ip}"
-#   }
-# }
-
-# output "subnet_info_10" {
-#   description = "Subnet Information for VPC 10.0.0.0/16"
-#   value = {
-#     public_subnets = {
-#       for az, subnet in aws_subnet.public_10 : az => {
-#         subnet_id               = subnet.id
-#         cidr_block              = subnet.cidr_block
-#         availability_zone       = subnet.availability_zone
-#         map_public_ip_on_launch = subnet.map_public_ip_on_launch
-#       }
-#     }
-#     private_subnets = {
-#       for az, subnet in aws_subnet.private_10 : az => {
-#         subnet_id               = subnet.id
-#         cidr_block              = subnet.cidr_block
-#         availability_zone       = subnet.availability_zone
-#         map_public_ip_on_launch = subnet.map_public_ip_on_launch
-#       }
-#     }
-#   }
-# }
+output "control_plane_k3s_10" {
+  value = {
+    "availability_zone" = aws_instance.control_plane_k3s_10.availability_zone,
+    "private_ip"        = aws_instance.control_plane_k3s_10.private_ip
+  }
+}
+output "node_k3s_10" {
+  value = {
+    "availability_zone" = aws_instance.node_k3s_10.availability_zone,
+    "private_ip"        = aws_instance.node_k3s_10.private_ip
+  }
+}

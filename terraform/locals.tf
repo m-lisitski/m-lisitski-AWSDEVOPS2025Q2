@@ -16,6 +16,6 @@ locals {
 }
 
 locals {
-  az_1a = var.vpc_10_config.availability_zones[0]
-  az_1b = var.vpc_10_config.availability_zones[1]
+  az_1a = data.aws_availability_zones.available.names[0]
+  az_1b = data.aws_availability_zones.available.names[1]
 }

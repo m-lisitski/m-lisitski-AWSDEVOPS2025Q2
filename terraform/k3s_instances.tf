@@ -42,15 +42,4 @@ resource "aws_instance" "node_k3s_10" {
   depends_on = [aws_instance.control_plane_k3s_10]
 }
 
-output "control_plane_k3s_10" {
-  value = {
-    "availability_zone" = aws_instance.control_plane_k3s_10.availability_zone,
-    "private_ip"        = aws_instance.control_plane_k3s_10.private_ip
-  }
-}
-output "node_k3s_10" {
-  value = {
-    "availability_zone" = aws_instance.node_k3s_10.availability_zone,
-    "private_ip"        = aws_instance.node_k3s_10.private_ip
-  }
-}
+
