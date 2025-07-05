@@ -27,21 +27,3 @@ resource "aws_vpc_security_group_ingress_rule" "bastion_console_access" {
   to_port        = "22"
   tags           = var.bastion_instance_config.tags
 }
-
-resource "aws_vpc_security_group_ingress_rule" "bastion_10" {
-  security_group_id = aws_security_group.bastion_10.id
-  ip_protocol       = "-1"
-  cidr_ipv4         = var.vpc_10_config.cidr_block
-  from_port         = "-1"
-  to_port           = "-1"
-  tags              = var.bastion_instance_config.tags
-}
-
-resource "aws_vpc_security_group_egress_rule" "bastion_10" {
-  security_group_id = aws_security_group.bastion_10.id
-  ip_protocol       = "-1"
-  cidr_ipv4         = "0.0.0.0/0"
-  from_port         = "-1"
-  to_port           = "-1"
-  tags              = var.bastion_instance_config.tags
-}
