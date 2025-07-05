@@ -6,3 +6,7 @@ data "aws_iam_policy" "admin_role" {
 data "aws_ec2_managed_prefix_list" "vpc_10_ec2_console_access" {
   name = "com.amazonaws.${aws_vpc.vpc_10.region}.ec2-instance-connect"
 }
+
+data "aws_availability_zones" "available" {
+  state = "available"
+}

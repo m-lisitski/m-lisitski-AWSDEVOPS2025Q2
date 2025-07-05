@@ -1,0 +1,37 @@
+#!/bin/bash
+
+echo "${ssh_private_b64}" | base64 -d > "${home_path}/k3s"
+
+cat > "${home_path}/config" <<EOF
+Host *
+    User ubuntu
+    IdentityFile ~/.ssh/k3s
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+EOF
+
+chmod 400 "${home_path}/k3s"
+chmod 600 "${home_path}/config"
+
+# Wait for the control plane to be ready
+MAX_RETRIES=10
+RETRIES=0
+until ssh -i "${home_path}/k3s" -F "${home_path}/config" -q \
+  "${control_plane_ip}" sudo cat /var/lib/rancher/k3s/server/node-token; do
+  ((RETRIES++))
+  if [ "$RETRIES" -ge "$MAX_RETRIES" ]; then
+    echo "Max retries reach. Continuing without failing."
+    exit 0
+  fi
+  sleep 50
+done
+
+TOKEN_NODE=$(ssh -i "${home_path}/k3s" -F "${home_path}/config" -q "${control_plane_ip}" sudo cat /var/lib/rancher/k3s/server/node-token)
+
+curl -sfL https://get.k3s.io | \
+  INSTALL_K3S_SKIP_START=true \
+  K3S_URL="https://${control_plane_ip}:6443" \
+  K3S_TOKEN="$TOKEN_NODE" \
+  sh - || { echo "K3s installation failed"; exit 0; }
+
+systemctl enable --now k3s-agent.service
