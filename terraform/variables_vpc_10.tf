@@ -45,7 +45,7 @@ variable "bastion_instance_config" {
 variable "bastion_10_ssh_allowed_cidrs" {
   description = "CIDRs allowed to SSH into bastion in VPC 10.0.0.0/16"
   type        = list(string)
-  default     = ["31.135.199.136/32"]
+  default     = ["31.135.199.147/32"]
 
 }
 
@@ -88,7 +88,15 @@ variable "public_ingress_nacl_rules_10" {
       rule_number = 250
       protocol    = "tcp"
       rule_action = "allow"
-      cidr_block  = "31.135.199.136/32"
+      cidr_block  = "31.135.199.147/32"
+      from_port   = "80"
+      to_port     = "80"
+    },
+    "flask_app_spec_ip" = {
+      rule_number = 255
+      protocol    = "tcp"
+      rule_action = "allow"
+      cidr_block  = "31.135.199.147/32"
       from_port   = "80"
       to_port     = "80"
     },

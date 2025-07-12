@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.fullname }}
+  labels:
+    {{ toYaml .Values.podLabels | indent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{ toYaml .Values.podLabels | indent 4 }}
+  template:
+    metadata:
+      labels:
+        {{ toYaml .Values.podLabels | indent 4 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
