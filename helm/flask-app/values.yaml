@@ -1,0 +1,17 @@
+fullname: "flask-app"
+
+image:
+  repository: "mlisitski86/flask-app"
+  pullPolicy: IfNotPresent
+  tag: "1.amd64"
+
+
+podLabels:
+  app: flask-app
+
+service:
+  type: NodePort
+  port: 8080
+  targetPort: 8080
+  nodePort: 32500
+
